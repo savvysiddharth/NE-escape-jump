@@ -1,36 +1,19 @@
 class Ball {
   constructor() {
     this.x = 0;
-    this.y = 400; //initial y
+    this.y = 0.7*world.height; //initial y at 20% far from bottom
     this.speedY = 0; //normal speed of moving w/o external force in y-axis
     this.speedX = 0;
     this.diameter = 40;
     this.thrust = -9; //thrust up while jumping
-    this.score = 0;
+    this.score = -1;
+    this.nextbar = 0;
+    this.barstatus = []; //array length = total bars, false - not counted, true - counted
     this.brain = new NeuralNetwork(7,7,5);
-    /* NEURAL NETWORK CONFIG
-     *
-     * INPUTS:
-     * -------
-     * ball Y
-     * ball X
-     * ball Speed Y
-     * ball Speed X
-     * barLeft Width
-     * barRight X
-     * bar Y
-     *
-     * OUTPUTS:
-     * -------
-     * jump
-     * No jump
-     * left
-     * right
-     */
   }
 
   draw() {
-    fill('rgb(224, 24, 24)');
+    fill('rgba(224, 24, 24, 0.5)');
     const {x,y,diameter} = this;
     ellipse(x,y,diameter,diameter);
   }
@@ -163,30 +146,32 @@ class Ball {
     * right
     * No direction
     */
-  useBrain(bar,bgs) {
+  useBrain(barGroups) {
+    const {y,x,speedY,speedX,nextbar} = this;
+
     const input = [];
-    input.push(this.y);
-    input.push(this.x);
-    input.push(this.speedY);
-    input.push(this.speedX);
-    input.push(bar.left.width);
-    input.push(bar.right.x);
-    input.push(bar.y);
+    input.push(y);
+    input.push(x);
+    input.push(speedY);
+    input.push(speedX);
+    input.push(barGroups[nextbar].left.width);
+    input.push(barGroups[nextbar].right.x);
+    input.push(barGroups[nextbar].y);
 
     const output = this.brain.feedforward(input);
 
+    console.log('next bar : ',nextbar);
+
     if(output[0] > output[1]) {
-      // if(ball.collisionCheckv3(bar) < 3 && ball.collisionCheckv3(bg0) < 3) {
-      //   this.jump();
-      // }
-      for(let b of bgs) {
-        if(ball.collisionCheckv3(b) < 3) {
+      for(let bar of barGroups) {
+        if(this.collisionCheckv3(bar) < 3) {
+          console.log('trynna jump..');
           this.jump();
         }
       }
     }
 
-    if(output[2]+output[3] > output[4]) {
+    if((output[2]+output[3])/2 > output[4]) {
       if(output[2] > output[3])
         this.moveLeft();
       else

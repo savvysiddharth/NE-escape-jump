@@ -7,7 +7,7 @@ class BarGroup {
     this.y = y; //y is starting position
 
     this.speedY = 1;
-    this.counted = false; //counted for score.
+    // this.counted = false; //counted for score.
 
     this.speedXr = random(1,6);
     this.speedXl = random(1,6);
@@ -67,107 +67,154 @@ class BarGroup {
 
 let ball;
 
-let rect1;
-
 let barGroups = []; //bar groups
 
 let balls = [];
 
+const TOTAL_BALL_POPULATION = 40;
+
 function setup() {
   noStroke();
   createCanvas(world.width,world.height);
-
-  ball = new Ball();
-
-  ball.x = width/2;
-
-  // balls.push(new Ball());
-
-  // for(ball of balls) {
-  //   ball.x = random(20,width-20);
-  // }
 
   barGroups[0] = new BarGroup(world.height-100);
   barGroups[0].left.width = world.width;
   for(let i = 1; i<=MAX_BARS ; i++) {
     barGroups[i] = new BarGroup(-i*300);
   }
+
+  for(let i=0 ; i<TOTAL_BALL_POPULATION ; i++) {
+    balls.push(new Ball());
+  }
+
+  for(ball of balls) {
+    ball.x = random(10,width-10);
+    for(k in barGroups) {
+      ball.barstatus[k] = false;
+    }
+  }
 }
 
-let score = -1;
+let max_score = -1; //current highest score, helps to find next bar
 let gameOver = false;
-let gameLevel = -1;
+let gameLevel = 0;
 
 function draw() {
   frameRate(60);
   background(150);
 
-  ball.useBrain(barGroups[(score + 1) - (gameLevel*10)], barGroups);
-
-  // for(ball of balls) {
-
-  // }
-
-  ball.draw();
-  ball.worldEffect();
   for(bar of barGroups) {
-    bar.draw()
     bar.move();
-    if(collision = ball.collisionCheckv3(bar)) {
-      if(collision < 3) { // (top surface)
-        if(!bar.counted) {
-          score++;
-          bar.counted = true;
-          console.log('score:',score);
-          if(score%MAX_BARS == 0) {
-            gameLevel++;
-            console.log("level:",gameLevel);
-            for(let i = 1; i<=MAX_BARS ; i++) {
-              barGroups[i] = new BarGroup(-(i-1)*300);
-            }
+  }
+
+  for(k in balls) {
+
+    let thisBallDied = false;
+
+    for(j in barGroups) {
+      const bar = barGroups[j];
+
+      if(collision = balls[k].collisionCheckv3(bar)) {
+        if(collision < 3) { // (top surface)
+          if(!balls[k].barstatus[j]) {
+            balls[k].score++;
+            console.log('ball',k,'score',balls[k].score);
+            balls[k].barstatus[j] = true;
           }
+          balls[k].speedY = bar.speedY;
+        } else if(collision > 3) { // (bottom surface) , collision with bottom surface of any bar results same
+          balls[k].speedY = 3; //thrust down
         }
-        ball.speedY = bar.speedY;
-      } else if(collision > 3) { // (bottom surface)
-        ball.speedY = 3; //thrust down
+      }
+
+    }
+
+    balls[k].nextbar = balls[k].score+1;
+
+    balls[k].useBrain(barGroups);
+
+    balls[k].worldEffect(); //applies effect of gravity and speed to the motion
+
+    if (balls[k].y >= world.height) { //if ball drops below the view
+      thisBallDied = true;
+    }
+
+    //BALL DIES WHEN IT'S SQUEEZED
+    if(balls[k].score >= 0) {
+      const d2 = world.height - BAR_STOPS_AT - 30; //dist from originTop to top surface of bottom bar
+      const d1 = barGroups[balls[k].nextbar].y + barGroups[balls[k].nextbar].height; //dist from originTop to bottom surface of next bar
+      if( d2 - d1 <= balls[k].diameter && balls[k].y > (d2 - balls[k].diameter)) {
+        thisBallDied = true;
+        balls[k].nextbar++;
       }
     }
-  }
 
-  if(ball.y >= world.height) {
-    gameOver = true;
-  }
-
-  if(score >= 0 && score < MAX_BARS*(gameLevel + 1)) {
-    const d2 = world.height - BAR_STOPS_AT - 30;
-    const d1 = barGroups[(score + 1) - (gameLevel*10)].y + barGroups[(score + 1) - (gameLevel*10)].height;
-    if( d2 - d1 <= ball.diameter && true) { //one more condition for ball pos on gameover yet to be added
-      gameOver = true;
+    if(thisBallDied) {
+      // console.log('ball',k,'died');
+      balls.splice(k,1);
     }
+
   }
 
-  //WARNING!!!!!!!!!!!!!!!!!!!!!!!!!111
-  //DO NOT SAVE.....NOT COMPLETED YET
-  //
-
-
-  if(gameOver) {
-    console.log('game over');
-    setup();
-    score = -1;
-    gameOver = false;
-    gameLevel = -1;
-
-    return;
+  for(ball of balls) {
+    ball.draw();
   }
+
+  for(bar of barGroups) {
+    bar.draw();
+  }
+
+  // for(bar of barGroups) {
+  //   if(collision = ball.collisionCheckv3(bar)) {
+  //     if(collision < 3) { // (top surface)
+  //       if(!bar.counted) {
+  //         score++;
+  //         bar.counted = true;
+  //         console.log('score:',score);
+  //         if(score%MAX_BARS == 0) {
+  //           gameLevel++;
+  //           console.log("level:",gameLevel);
+  //           for(let i = 1; i<=MAX_BARS ; i++) {
+  //             barGroups[i] = new BarGroup(-(i-1)*300);
+  //           }
+  //         }
+  //       }
+  //       ball.speedY = bar.speedY;
+  //     } else if(collision > 3) { // (bottom surface)
+  //       ball.speedY = 3; //thrust down
+  //     }
+  //   }
+  // }
+
+  // if(ball.y >= world.height) {
+  //   gameOver = true;
+  // }
+
+  // if(score >= 0 && score < MAX_BARS*(gameLevel + 1)) {
+  //   const d2 = world.height - BAR_STOPS_AT - 30;
+  //   const d1 = barGroups[(score + 1) - (gameLevel*10)].y + barGroups[(score + 1) - (gameLevel*10)].height;
+  //   if( d2 - d1 <= ball.diameter && true) { //one more condition for ball pos on gameover yet to be added
+  //     gameOver = true;
+  //   }
+  // }
+
+  // if(gameOver) {
+  //   console.log('game over');
+  //   setup();
+  //   score = -1;
+  //   gameOver = false;
+  //   gameLevel = -1;
+
+  //   return;
+  // }
 
 }
 
 function keyPressed() {
   if(keyCode == 38 ) {
     for(bar of barGroups) {
-      if(ball.collisionCheckv3(bar) < 3) {
-        ball.jump();
+      if(balls[0].collisionCheckv3(bar) < 3) {
+        balls[0].jump();
         return false;
       }
     }
@@ -179,16 +226,3 @@ function keyPressed() {
   if(keyCode == 37) //left
     ball.moveLeft();
 }
-
-function mousePressed() {
-  let b = barGroups[0];
-  if(ball.collisionCheckv2(b)) {
-    ball.jump();
-  }
-  return false;
-}
-
-// function touchStarted() {
-//   ball.jump();
-//   return false;
-// }
