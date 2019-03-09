@@ -5,11 +5,10 @@ class Ball {
     this.speedY = 0; //normal speed of moving w/o external force in y-axis
     this.speedX = 0;
     this.diameter = 40;
-    this.thrust = -9; //thrust up while jumping
+    this.thrust = -9; //thrust up while jumping ,(more negative, more thrust)
     this.score = -1;
     this.nextbar = 0;
     this.barstatus = -1; //currently visiting bar number
-    // this.barstatus = []; //array length = total bars, false - not counted, true - counted
     this.brain = new NeuralNetwork(7,7,5);
   }
 
@@ -163,8 +162,10 @@ class Ball {
 
     if(output[0] > output[1]) {
       for(let bar of barGroups) {
-        if(this.collisionCheckv3(bar) < 3) {
-          this.jump();
+        if(bar != null) {
+          if(this.collisionCheckv3(bar) < 3) {
+            this.jump();
+          }
         }
       }
     }

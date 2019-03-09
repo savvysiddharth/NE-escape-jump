@@ -1,5 +1,6 @@
 const BAR_STOPS_AT = 50; //pixel from bottom
-const MAX_BARS = 10; //total bars per level
+const MAX_BARS = 5; //maximum bars in memory at a time
+const BAR_GAP = 300; //gaps between consecutive bar
 
 class BarGroup {
   constructor(y) {
@@ -55,7 +56,6 @@ class BarGroup {
     if(y > world.height - height - BAR_STOPS_AT) {
       this.speedY = 0;
       if(!this.stopped) {
-        console.log('this bar stopped!');
         this.stopped = true;
       }
     }
@@ -100,7 +100,6 @@ function setup() {
   }
 }
 
-let max_score = -1; //current highest score, helps to find next bar
 let gameOver = false;
 let gameLevel = 0;
 
@@ -108,9 +107,17 @@ function draw() {
   frameRate(60);
   background(150);
 
-  for(bar of barGroups) {
-    if(bar != null)
-      bar.move();
+  for(j in barGroups) {
+    if(barGroups[j] != null) {
+      const bar = barGroups[j];
+      if(j != 0 && bar.stopped) {
+        barGroups[j] = null;
+        barGroups.push(new BarGroup(barGroups[barGroups.length - 1].y - BAR_GAP));
+      } else {
+        bar.move();
+      }
+    }
+
   }
 
   for(k in balls) {
@@ -155,7 +162,6 @@ function draw() {
     }
 
     if(thisBallDied) {
-      // console.log('ball',k,'died');
       balls.splice(k,1);
     }
 
@@ -175,9 +181,11 @@ function draw() {
 function keyPressed() {
   if(keyCode == 38 ) {
     for(bar of barGroups) {
-      if(balls[0].collisionCheckv3(bar) < 3) {
-        balls[0].jump();
-        return false;
+      if(bar != null) {
+        if(balls[0].collisionCheckv3(bar) < 3) {
+          balls[0].jump();
+          return false;
+        }
       }
     }
   }
