@@ -8,7 +8,8 @@ class Ball {
     this.thrust = -9; //thrust up while jumping
     this.score = -1;
     this.nextbar = 0;
-    this.barstatus = []; //array length = total bars, false - not counted, true - counted
+    this.barstatus = -1; //currently visiting bar number
+    // this.barstatus = []; //array length = total bars, false - not counted, true - counted
     this.brain = new NeuralNetwork(7,7,5);
   }
 
@@ -160,12 +161,9 @@ class Ball {
 
     const output = this.brain.feedforward(input);
 
-    console.log('next bar : ',nextbar);
-
     if(output[0] > output[1]) {
       for(let bar of barGroups) {
         if(this.collisionCheckv3(bar) < 3) {
-          console.log('trynna jump..');
           this.jump();
         }
       }

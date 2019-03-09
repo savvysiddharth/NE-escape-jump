@@ -11,6 +11,7 @@ class BarGroup {
 
     this.speedXr = random(1,6);
     this.speedXl = random(1,6);
+    this.stopped = false;
 
     this.left = {
       x : 0,
@@ -53,6 +54,10 @@ class BarGroup {
 
     if(y > world.height - height - BAR_STOPS_AT) {
       this.speedY = 0;
+      if(!this.stopped) {
+        console.log('this bar stopped!');
+        this.stopped = true;
+      }
     }
 
     if (y <= 300) {
@@ -104,7 +109,8 @@ function draw() {
   background(150);
 
   for(bar of barGroups) {
-    bar.move();
+    if(bar != null)
+      bar.move();
   }
 
   for(k in balls) {
@@ -112,21 +118,20 @@ function draw() {
     let thisBallDied = false;
 
     for(j in barGroups) {
-      const bar = barGroups[j];
-
-      if(collision = balls[k].collisionCheckv3(bar)) {
-        if(collision < 3) { // (top surface)
-          if(!balls[k].barstatus[j]) {
-            balls[k].score++;
-            console.log('ball',k,'score',balls[k].score);
-            balls[k].barstatus[j] = true;
+      if(barGroups[j] != null) {
+        const bar = barGroups[j];
+        if(collision = balls[k].collisionCheckv3(bar)) {
+          if(collision < 3) { // (top surface)
+            if(j > balls[k].barstatus) {
+              balls[k].score++;
+              balls[k].barstatus = j;
+            }
+            balls[k].speedY = bar.speedY;
+          } else if(collision > 3) { // (bottom surface) , collision with bottom surface of any bar results same
+            balls[k].speedY = 3; //thrust down
           }
-          balls[k].speedY = bar.speedY;
-        } else if(collision > 3) { // (bottom surface) , collision with bottom surface of any bar results same
-          balls[k].speedY = 3; //thrust down
         }
       }
-
     }
 
     balls[k].nextbar = balls[k].score+1;
@@ -161,53 +166,10 @@ function draw() {
   }
 
   for(bar of barGroups) {
-    bar.draw();
+    if(bar != null) {
+      bar.draw();
+    }
   }
-
-  // for(bar of barGroups) {
-  //   if(collision = ball.collisionCheckv3(bar)) {
-  //     if(collision < 3) { // (top surface)
-  //       if(!bar.counted) {
-  //         score++;
-  //         bar.counted = true;
-  //         console.log('score:',score);
-  //         if(score%MAX_BARS == 0) {
-  //           gameLevel++;
-  //           console.log("level:",gameLevel);
-  //           for(let i = 1; i<=MAX_BARS ; i++) {
-  //             barGroups[i] = new BarGroup(-(i-1)*300);
-  //           }
-  //         }
-  //       }
-  //       ball.speedY = bar.speedY;
-  //     } else if(collision > 3) { // (bottom surface)
-  //       ball.speedY = 3; //thrust down
-  //     }
-  //   }
-  // }
-
-  // if(ball.y >= world.height) {
-  //   gameOver = true;
-  // }
-
-  // if(score >= 0 && score < MAX_BARS*(gameLevel + 1)) {
-  //   const d2 = world.height - BAR_STOPS_AT - 30;
-  //   const d1 = barGroups[(score + 1) - (gameLevel*10)].y + barGroups[(score + 1) - (gameLevel*10)].height;
-  //   if( d2 - d1 <= ball.diameter && true) { //one more condition for ball pos on gameover yet to be added
-  //     gameOver = true;
-  //   }
-  // }
-
-  // if(gameOver) {
-  //   console.log('game over');
-  //   setup();
-  //   score = -1;
-  //   gameOver = false;
-  //   gameLevel = -1;
-
-  //   return;
-  // }
-
 }
 
 function keyPressed() {
