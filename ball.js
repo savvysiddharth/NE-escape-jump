@@ -4,12 +4,13 @@ class Ball {
     this.y = 0.7*world.height; //initial y at 20% far from bottom
     this.speedY = 0; //normal speed of moving w/o external force in y-axis
     this.speedX = 0;
+    this.fitness_score = 0; //no of seconds survived
     this.diameter = 40;
     this.thrust = -9; //thrust up while jumping ,(more negative, more thrust)
     this.score = -1;
     this.nextbar = 0;
     this.barstatus = -1; //currently visiting bar number
-    this.brain = new NeuralNetwork(7,7,5);
+    this.brain = new NeuralNetwork(9,9,5);
   }
 
   draw() {
@@ -29,8 +30,12 @@ class Ball {
 
     if(speedX > 0) {
       this.speedX -= world.airFriction;
-    } else {
+      if(speedX < 0)
+        this.speedX = 0;
+    } else if(speedX < 0) {
       this.speedX += world.airFriction;
+      if(speedX > 0)
+        this.speedX = 0;
     }
 
     if(x >= width || x <= 0)
@@ -137,6 +142,8 @@ class Ball {
     * barLeft Width
     * barRight X
     * bar Y
+    * barLspeed
+    * barRspeed
     *
     * OUTPUTS:
     * -------
@@ -144,11 +151,10 @@ class Ball {
     * No jump
     * left
     * right
-    * No direction
+    * No move
     */
-  useBrain(barGroups) {
+  useBrain() {
     const {y,x,speedY,speedX,nextbar} = this;
-
     const input = [];
     input.push(y);
     input.push(x);
@@ -157,6 +163,8 @@ class Ball {
     input.push(barGroups[nextbar].left.width);
     input.push(barGroups[nextbar].right.x);
     input.push(barGroups[nextbar].y);
+    input.push(barGroups[nextbar].speedXl);
+    input.push(barGroups[nextbar].speedXr);
 
     const output = this.brain.feedforward(input);
 
@@ -170,7 +178,7 @@ class Ball {
       }
     }
 
-    if((output[2]+output[3])/2 > output[4]) {
+    if((output[2] + output[3]) / 2 > output[4]) {
       if(output[2] > output[3])
         this.moveLeft();
       else

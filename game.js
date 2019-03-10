@@ -1,82 +1,43 @@
-const BAR_STOPS_AT = 50; //pixel from bottom
-const MAX_BARS = 5; //maximum bars in memory at a time
-const BAR_GAP = 300; //gaps between consecutive bar
-
-class BarGroup {
-  constructor(y) {
-    this.height = 30;
-    this.y = y; //y is starting position
-
-    this.speedY = 1;
-    // this.counted = false; //counted for score.
-
-    this.speedXr = random(1,6);
-    this.speedXl = random(1,6);
-    this.stopped = false;
-
-    this.left = {
-      x : 0,
-      width : 0,
-      speed : this.speedXl
-    };
-
-    this.right = {
-      x : world.width,
-      width : world.width,
-      speed : this.speedXr
-    };
-  }
-
-  draw() {
-    const {y, height} = this;
-    let rx = this.right.x;
-    let rwidth = this.right.width;
-    let lx = this.left.x;
-    let lwidth = this.left.width;
-    fill(0);
-    rect(rx, y, rwidth, height);
-    rect(lx, y, lwidth, height);
-  }
-
-  move() {
-    const {y, speedY, height} = this;
-
-    this.y += speedY;
-
-    this.left.width += this.left.speed;
-    this.right.x -= this.right.speed;
-
-    let gap = this.right.x - this.left.width;
-
-    if(gap <= 0) {
-      this.left.speed = 0;
-      this.right.speed = 0;
-    }
-
-    if(y > world.height - height - BAR_STOPS_AT) {
-      this.speedY = 0;
-      if(!this.stopped) {
-        this.stopped = true;
-      }
-    }
-
-    if (y <= 300) {
-      this.right.speed=0;
-      this.left.speed=0;
-    } else if(gap >= 0) {
-      this.right.speed=this.speedXr;
-      this.left.speed=this.speedXl;
-    }
-  }
-}
-
-let ball;
-
 let barGroups = []; //bar groups
 
-let balls = [];
+let balls = []; //all balls alive
 
-const TOTAL_BALL_POPULATION = 40;
+const TOTAL_BALL_POPULATION = 20;
+
+let ANIMATION_SPEED = 1;
+
+class StatusBoard {
+
+  constructor() {
+    this.best = 0; //AlltimeBest
+    this.gen = 0;
+    this.curr = 0; //currentBest
+  }
+
+  updateBest(score) {
+    this.best = score;
+    let board = document.querySelector("#s1");
+    board.innerHTML = "Best yet : " + this.best;
+  }
+
+  updateGeneration() {
+    this.gen++;
+    let board = document.querySelector("#s2");
+    board.innerHTML = "Generation : " + this.gen;
+  }
+
+  updateCurrent(score) {
+    this.curr = score;
+    let board = document.querySelector("#s3");
+    board.innerHTML = "Current score : " + this.curr;
+    if(score > this.best) {
+      this.updateBest(score);
+    }
+  }
+
+}
+
+let status = new StatusBoard();
 
 function setup() {
   noStroke();
@@ -94,78 +55,118 @@ function setup() {
 
   for(ball of balls) {
     ball.x = random(10,width-10);
-    for(k in barGroups) {
-      ball.barstatus[k] = false;
-    }
   }
 }
 
 let gameOver = false;
 let gameLevel = 0;
+let previousGen = []; //dead balls
+
+let highScore = 0;
 
 function draw() {
   frameRate(60);
   background(150);
 
-  for(j in barGroups) {
-    if(barGroups[j] != null) {
-      const bar = barGroups[j];
-      if(j != 0 && bar.stopped) {
-        barGroups[j] = null;
-        barGroups.push(new BarGroup(barGroups[barGroups.length - 1].y - BAR_GAP));
-      } else {
-        bar.move();
-      }
-    }
-
-  }
-
-  for(k in balls) {
-
-    let thisBallDied = false;
-
+  for(let ITR=0 ; ITR < ANIMATION_SPEED ; ITR++) {
     for(j in barGroups) {
       if(barGroups[j] != null) {
         const bar = barGroups[j];
-        if(collision = balls[k].collisionCheckv3(bar)) {
-          if(collision < 3) { // (top surface)
-            if(j > balls[k].barstatus) {
-              balls[k].score++;
-              balls[k].barstatus = j;
+        if(j != 0 && bar.stopped) {
+          barGroups[j] = null;
+          barGroups.push(new BarGroup(barGroups[barGroups.length - 1].y - BAR_GAP));
+        } else {
+          bar.move();
+        }
+      }
+
+    }
+
+    for(k in balls) {
+      // balls[k].worldEffect(); //uncomment here if using keyboard
+      balls[k].fitness_score++;
+
+      let thisBallDied = false;
+
+      for(let j =0 ;  j< barGroups.length ; j++) {
+
+        if(barGroups[j] != null) {
+          const bar = barGroups[j];
+          if(collision = balls[k].collisionCheckv3(bar)) {
+            if(collision < 3) { // (top surface)
+              // if(balls[k].score == 9) {
+              //   console.log('j',j,'status',balls[k].barstatus)
+              // }
+              // if(j >= 9) {
+              //   console.log(typeof(j),typeof(balls[k].barstatus));
+              //   console.log(j > balls[k].barstatus);
+              // }
+              if(j > balls[k].barstatus) {
+                balls[k].score++;
+                balls[k].barstatus = j;
+              }
+              balls[k].speedY = bar.speedY;
+            } else if(collision > 3) { // (bottom surface) , collision with bottom surface of any bar results same
+              balls[k].speedY = 3; //thrust down
             }
-            balls[k].speedY = bar.speedY;
-          } else if(collision > 3) { // (bottom surface) , collision with bottom surface of any bar results same
-            balls[k].speedY = 3; //thrust down
           }
         }
       }
-    }
 
-    balls[k].nextbar = balls[k].score+1;
+      balls[k].nextbar = balls[k].score+1;
 
-    balls[k].useBrain(barGroups);
+      balls[k].useBrain();
 
-    balls[k].worldEffect(); //applies effect of gravity and speed to the motion
+      balls[k].worldEffect(); //applies effect of gravity and speed to the motion
 
-    if (balls[k].y >= world.height) { //if ball drops below the view
-      thisBallDied = true;
-    }
-
-    //BALL DIES WHEN IT'S SQUEEZED
-    if(balls[k].score >= 0) {
-      const d2 = world.height - BAR_STOPS_AT - 30; //dist from originTop to top surface of bottom bar
-      const d1 = barGroups[balls[k].nextbar].y + barGroups[balls[k].nextbar].height; //dist from originTop to bottom surface of next bar
-      if( d2 - d1 <= balls[k].diameter && balls[k].y > (d2 - balls[k].diameter)) {
+      if (balls[k].y >= world.height) { //if ball drops below the view
         thisBallDied = true;
-        balls[k].nextbar++;
       }
+
+      //BALL DIES WHEN IT'S SQUEEZED
+      if(balls[k].score >= 0) {
+        const d2 = world.height - BAR_STOPS_AT - 30; //dist from originTop to top surface of bottom bar
+        const d1 = barGroups[balls[k].nextbar].y + barGroups[balls[k].nextbar].height; //dist from originTop to bottom surface of next bar
+        if( d2 - d1 <= balls[k].diameter && balls[k].y > (d2 - balls[k].diameter)) {
+          thisBallDied = true;
+          balls[k].nextbar++;
+        }
+      }
+
+      if(balls[k].score > highScore) {
+        highScore = balls[k].score;
+      }
+
+      if(thisBallDied) {
+        previousGen.push(balls[k]);
+        balls.splice(k,1);
+      }
+
     }
 
-    if(thisBallDied) {
-      balls.splice(k,1);
-    }
+    status.updateCurrent(highScore);
+  
+    if(balls.length == 0) {
+      //RESET EVERYTHING
+      barGroups = [];
+      barGroups[0] = new BarGroup(world.height-100);
+      barGroups[0].left.width = world.width;
+      for(let i = 1; i<=MAX_BARS ; i++) {
+        barGroups[i] = new BarGroup(-i*300);
+      }
+      balls = [];
+      highScore = 0;
+      status.updateCurrent(0);
+      status.updateGeneration();
 
+
+      //GET NEW GENERATION
+      balls = nextGeneration(previousGen);
+      previousGen = [];
+    }
   }
+
+
 
   for(ball of balls) {
     ball.draw();
