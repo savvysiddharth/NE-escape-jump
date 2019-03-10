@@ -9,8 +9,8 @@ class BarGroup {
 
     this.speedY = 1;
 
-    this.speedXr = random(1,6);
-    this.speedXl = random(1,6);
+    this.speedXr = random(2,7);
+    this.speedXl = random(2,7);
     this.stopped = false;
 
     this.left = {

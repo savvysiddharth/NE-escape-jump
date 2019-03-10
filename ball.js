@@ -10,7 +10,7 @@ class Ball {
     this.score = -1;
     this.nextbar = 0;
     this.barstatus = -1; //currently visiting bar number
-    this.brain = new NeuralNetwork(9,9,5);
+    this.brain = new NeuralNetwork(7,9,5);
   }
 
   draw() {
@@ -163,8 +163,8 @@ class Ball {
     input.push(barGroups[nextbar].left.width);
     input.push(barGroups[nextbar].right.x);
     input.push(barGroups[nextbar].y);
-    input.push(barGroups[nextbar].speedXl);
-    input.push(barGroups[nextbar].speedXr);
+    // input.push(barGroups[nextbar].speedXl);
+    // input.push(barGroups[nextbar].speedXr);
 
     const output = this.brain.feedforward(input);
 
