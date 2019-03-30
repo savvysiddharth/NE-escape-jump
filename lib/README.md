@@ -1,0 +1,1 @@
+`nn.js` used here is based on [Toy Neural Network](https://github.com/CodingTrain/Toy-Neural-Network-JS) by The Coding Train.
