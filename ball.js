@@ -10,7 +10,7 @@ class Ball {
     this.score = -1;
     this.nextbar = 0;
     this.barstatus = -1; //currently visiting bar number
-    this.brain = new NeuralNetwork(7,9,5);
+    this.brain = new NeuralNetwork(7,6,5);
   }
 
   draw() {
