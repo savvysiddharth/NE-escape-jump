@@ -4,7 +4,7 @@ Setting up a neural network to play [escape-jump](https://github.com/savvysiddha
 
 Uses [mini-ANN-js](https://github.com/savvysiddharth/mini-ANN-js) neural network library for neuroevolution functions like mutate and crossover.
 
-[See demo](https://github.com/savvysiddharth/NE-escape-jump)
+[See demo](https://savvysiddharth.github.io/NE-escape-jump/)
 
 #### Screenshot :
 
