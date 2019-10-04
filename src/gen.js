@@ -9,12 +9,12 @@ function nextGeneration(prevGen) {
   //get fitness
   getFitness(prevGen);
 
-  //natural selection
+  //natural selection and crossover
   for(let i=0 ; i<TOTAL_BALL_POPULATION ; i++) {
-    newGen[i].brain = natureSelects(prevGen).brain;
+    const brain1 = natureSelects(prevGen).brain.copy();
+    const brain2 = natureSelects(prevGen).brain.copy();
+    newGen[i].brain = brain1.crossover(brain2);
   }
-
-  //crossover
 
   //mutation
   mutate(newGen);
@@ -46,14 +46,7 @@ function natureSelects(Gen) {
 	index--;
 
   // console.log('ball',index,'selected');
-  return Gen[index]; // array of 2 elements
-}
-
-function crossover(selected) {
-
-  //define crossover
-
-  return offspring;
+  return Gen[index]; // return naturally selected element
 }
 
 function mutate(Gen) {

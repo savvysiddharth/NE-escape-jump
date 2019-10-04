@@ -7,7 +7,6 @@ const TOTAL_BALL_POPULATION = 20;
 let ANIMATION_SPEED = 1;
 
 class StatusBoard {
-
   constructor() {
     this.best = 0; //AlltimeBest
     this.gen = 0;
@@ -28,7 +27,6 @@ class StatusBoard {
       this.updateBest(score);
     }
   }
-
 }
 
 let status = new StatusBoard();
@@ -103,13 +101,6 @@ function draw() {
           const bar = barGroups[j];
           if(collision = balls[k].collisionCheckv3(bar)) {
             if(collision < 3) { // (top surface)
-              // if(balls[k].score == 9) {
-              //   console.log('j',j,'status',balls[k].barstatus)
-              // }
-              // if(j >= 9) {
-              //   console.log(typeof(j),typeof(balls[k].barstatus));
-              //   console.log(j > balls[k].barstatus);
-              // }
               if(j > balls[k].barstatus) {
                 balls[k].score++;
                 balls[k].barstatus = j;
@@ -167,7 +158,6 @@ function draw() {
       highScore = 0;
       status.updateCurrent(0);
       status.updateGeneration();
-
 
       //GET NEW GENERATION
       balls = nextGeneration(previousGen);
