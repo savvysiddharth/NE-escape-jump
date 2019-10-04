@@ -16,20 +16,14 @@ class StatusBoard {
 
   updateBest(score) {
     this.best = score;
-    let board = document.querySelector("#s1");
-    board.innerHTML = "Best yet : " + this.best;
   }
 
   updateGeneration() {
     this.gen++;
-    let board = document.querySelector("#s2");
-    board.innerHTML = "Generation : " + this.gen;
   }
 
   updateCurrent(score) {
     this.curr = score;
-    let board = document.querySelector("#s3");
-    board.innerHTML = "Current score : " + this.curr;
     if(score > this.best) {
       this.updateBest(score);
     }
@@ -38,6 +32,18 @@ class StatusBoard {
 }
 
 let status = new StatusBoard();
+
+function print_status(val, pos) {
+  textSize(18);
+  fill(255);
+  if(pos == 1) {
+    text("Current score : "+val, 10, 20);
+  } else if(pos == 2) {
+    text("Best yet : "+val, 10, 45);
+  } else if(pos == 3) {
+    text("Generation : "+val, 10, 70);
+  }
+}
 
 function setup() {
   noStroke();
@@ -67,6 +73,9 @@ let highScore = 0;
 function draw() {
   frameRate(60);
   background(150);
+  print_status(status.curr, 1);
+  print_status(status.best, 2);
+  print_status(status.gen, 3);
 
   for(let ITR=0 ; ITR < ANIMATION_SPEED ; ITR++) {
     for(j in barGroups) {
